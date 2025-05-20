@@ -1,0 +1,20 @@
+docker/docker-data/minio/*
+docker/docker-data/postgres/*
+docker/docker-data/rabbitmq/*
+
+# Environment files
+docker/.env
+docker/.env.development
+docker/.env.production
+
+# Logs
+*.log
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# IDE files
+.idea/
+.vscode/
+*.sublime-*

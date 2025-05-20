@@ -1,0 +1,9 @@
+[submodule "services/smtp-service"]
+	path = services/smtp-service
+	url = https://github.com/Unietickets/unie-smtp-service
+[submodule "services/balance-service"]
+	path = services/balance-service
+	url = https://github.com/Unietickets/unie-balance-service
+[submodule "services/unie"]
+	path = services/unie
+	url = https://github.com/Amirka2/unie

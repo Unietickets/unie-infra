@@ -1,0 +1,97 @@
+# Загрузка всех переменных окружения из файла .env.production
+env_file: ./.env.production
+
+services:
+  postgres:
+    restart: always
+    ports: []  # Закрываем внешние порты
+
+  rabbitmq:
+    restart: always
+    ports: []  # Закрываем внешние порты в продакшене
+
+  unie-service:
+    build:
+      context: ../services/unie
+      dockerfile: Dockerfile
+      target: runner
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME}
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=${DATABASE_PORT}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_NAME=${DATABASE_NAME}
+      - RABBITMQ_URL=amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASSWORD:-password}@rabbitmq:5672
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - postgres
+      - rabbitmq
+    networks:
+      - app_network
+    ports: []  # Закрываем внешние порты в продакшене
+
+  balance-service:
+    build:
+      context: ../services/balance-service
+      dockerfile: Dockerfile
+      target: production
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - RABBITMQ_URL=amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASSWORD:-password}@rabbitmq:5672
+    ports: []  # Закрываем внешние порты в продакшене
+    depends_on:
+      - postgres
+      - rabbitmq
+    networks:
+      - app_network
+
+  smtp-service:
+    build:
+      context: ../services/smtp-service
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - RABBITMQ_URL=amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASSWORD:-password}@rabbitmq:5672
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SMTP_FROM=${SMTP_FROM:-noreply@unie.com}
+      - FRONTEND_URL=${FRONTEND_URL}
+    ports: []  # Закрываем внешние порты в продакшене
+    depends_on:
+      - postgres
+      - rabbitmq
+    networks:
+      - app_network
+
+  nginx:
+    build:
+      context: ../services/unie/nginx
+      dockerfile: Dockerfile
+    volumes:
+      - ../services/unie/nginx/conf.d:/etc/nginx/conf.d
+      - ../services/unie/nginx/logs:/var/log/nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    depends_on:
+      unie-service:
+        condition: service_healthy
+    restart: always
+    networks:
+      - app_network

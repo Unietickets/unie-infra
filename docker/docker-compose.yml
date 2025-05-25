@@ -1,7 +1,6 @@
 version: '3.8'
 
-# Загрузка всех переменных окружения из файла .env
-env_file: ./.env
+# Переменные окружения загружаются через параметр --env-file в командной строке
 
 x-init-dirs: &init-dirs
   condition: service_healthy
@@ -21,11 +20,11 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
-          cpus: '0.5'
+          memory: 2048M
+          cpus: '1.0'
         reservations:
-          memory: 256M
-          cpus: '0.25'
+          memory: 1024M
+          cpus: '0.5'
     networks:
       - app_network
 
@@ -54,34 +53,7 @@ services:
           cpus: '0.25'
     networks:
       - app_network
-
-  unie-client:
-    build:
-      context: ../services/unie
-      dockerfile: Dockerfile
-      target: runner
-    environment:
-      - NODE_ENV=development
-      - DATABASE_URL=${DATABASE_URL}
-      - DATABASE_HOST=postgres
-      - DATABASE_PORT=${DATABASE_PORT}
-      - DATABASE_USER=${DATABASE_USER}
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
-      - DATABASE_NAME=${DATABASE_NAME}
-      - RABBITMQ_URL=amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASSWORD:-password}@rabbitmq:5672
-    ports:
-      - "3000:3000"
-    depends_on:
-      - postgres
-      - rabbitmq
-    networks:
-      - app_network
-    healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "3000"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
+      
   balance-service:
     build:
       context: ../services/balance-service
@@ -144,19 +116,19 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: ${PWD}/docker-data/postgres
+      device: ${PWD}/docker/docker-data/postgres
       o: bind
   minio_storage:
     driver: local
     driver_opts:
       type: none
-      device: ${PWD}/docker-data/minio
+      device: ${PWD}/docker/docker-data/minio
       o: bind
   rabbitmq_data:
     driver: local
     driver_opts:
       type: none
-      device: ${PWD}/docker-data/rabbitmq
+      device: ${PWD}/docker/docker-data/rabbitmq
       o: bind
 
 networks:

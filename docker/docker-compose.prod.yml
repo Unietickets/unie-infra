@@ -1,5 +1,4 @@
-# Загрузка всех переменных окружения из файла .env.production
-env_file: ./.env.production
+# Переменные окружения загружаются через параметр --env-file в командной строке
 
 services:
   rabbitmq:

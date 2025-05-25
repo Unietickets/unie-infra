@@ -3,8 +3,25 @@ env_file: ./.env.development
 
 services:
   postgres:
+    image: postgres:13.3
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
     ports:
-      - "${DATABASE_PORT}:5432"  # Открываем порт для доступа извне
+      - "${DATABASE_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    networks:
+      - app_network
 
   pgadmin:
     image: dpage/pgadmin4:7.2
@@ -24,7 +41,7 @@ services:
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER:-admin}
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD:-password}
 
-  unie-service:
+  unie-client:
     build:
       context: ../services/unie
       dockerfile: Dockerfile

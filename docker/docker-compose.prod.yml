@@ -2,15 +2,11 @@
 env_file: ./.env.production
 
 services:
-  postgres:
-    restart: always
-    ports: []  # Закрываем внешние порты
-
   rabbitmq:
     restart: always
     ports: []  # Закрываем внешние порты в продакшене
 
-  unie-service:
+  unie-client:
     build:
       context: ../services/unie
       dockerfile: Dockerfile
@@ -78,11 +74,11 @@ services:
 
   nginx:
     build:
-      context: ../services/unie/nginx
+      context: ../services/nginx
       dockerfile: Dockerfile
     volumes:
-      - ../services/unie/nginx/conf.d:/etc/nginx/conf.d
-      - ../services/unie/nginx/logs:/var/log/nginx
+      - ../services/nginx/conf.d:/etc/nginx/conf.d
+      - ../services/nginx/logs:/var/log/nginx
     ports:
       - "80:80"
       - "443:443"
@@ -90,7 +86,7 @@ services:
       - 8.8.8.8
       - 8.8.4.4
     depends_on:
-      unie-service:
+      unie-client:
         condition: service_healthy
     restart: always
     networks:

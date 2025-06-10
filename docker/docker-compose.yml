@@ -76,7 +76,6 @@ services:
     ports:
       - "3001:3001"
     depends_on:
-      - postgres
       - rabbitmq
     networks:
       - app_network
@@ -86,7 +85,6 @@ services:
       context: ../services/smtp-service
       dockerfile: Dockerfile
     depends_on:
-      - postgres
       - rabbitmq
     environment:
       - NODE_ENV=docker

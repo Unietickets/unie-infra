@@ -1,6 +1,7 @@
 docker/docker-data/minio/*
 docker/docker-data/postgres/*
 docker/docker-data/rabbitmq/*
+docker/docker-data/pgadmin/*
 
 # Environment files
 docker/.env

@@ -22,10 +22,12 @@
 `./docker/setup.sh`
 
 ### Разработка
-`cd docker docker-compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.development up`
+./docker:
+`docker-compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.development up`
 
 ### Продакшн
-`cd docker docker-compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production up -d`
+./docker:
+`docker-compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production up -d`
 
 
 ## Обновление подмодулей

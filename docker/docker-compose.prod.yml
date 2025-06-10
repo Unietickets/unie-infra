@@ -26,7 +26,6 @@ services:
       timeout: 5s
       retries: 5
     depends_on:
-      - postgres
       - rabbitmq
     networks:
       - app_network
@@ -44,7 +43,6 @@ services:
       - RABBITMQ_URL=amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASSWORD:-password}@rabbitmq:5672
     ports: []  # Закрываем внешние порты в продакшене
     depends_on:
-      - postgres
       - rabbitmq
     networks:
       - app_network
@@ -66,7 +64,6 @@ services:
       - FRONTEND_URL=${FRONTEND_URL}
     ports: []  # Закрываем внешние порты в продакшене
     depends_on:
-      - postgres
       - rabbitmq
     networks:
       - app_network

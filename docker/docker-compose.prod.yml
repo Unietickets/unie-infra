@@ -75,6 +75,8 @@ services:
     volumes:
       - ../services/nginx/conf.d:/etc/nginx/conf.d
       - ../services/nginx/logs:/var/log/nginx
+      - /etc/ssl/certs:/etc/ssl/certs:ro
+      - /etc/ssl/private:/etc/ssl/private:ro
     ports:
       - "80:80"
       - "443:443"

@@ -16,7 +16,12 @@
 `git clone --recursive https://github.com/Unietickets/unie-infra.git cd unie-infra`
 
 2. Или, если вы уже клонировали репозиторий без подмодулей:
-`git submodule update --init --recursive`
+```
+git submodule foreach git pull origin master
+git add .
+git commit -m "Update all submodules to the latest commits on master."
+git push
+```
 
 3. Запустите скрипт инициализации:
 `./docker/setup.sh`

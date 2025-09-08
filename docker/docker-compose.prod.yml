@@ -86,6 +86,8 @@ services:
     depends_on:
       unie-client:
         condition: service_healthy
+      admin:
+        condition: service_started
     restart: always
     networks:
       - app_network

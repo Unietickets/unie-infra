@@ -7,6 +7,23 @@ x-init-dirs: &init-dirs
   command: ./init-docker-dirs.sh
 
 services:
+  admin:
+    build:
+      context: ../services/unie-admin
+      dockerfile: Dockerfile
+    container_name: admin
+    restart: always
+    environment:
+      - DATABASE_HOST=${DATABASE_HOST}
+      - DATABASE_PORT=${DATABASE_PORT}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_NAME=${DATABASE_NAME}
+    expose:
+      - "5000"
+    networks:
+      - app_network
+
   minio:
     image: bitnami/minio:latest
     ports:
@@ -28,7 +45,7 @@ services:
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER:-admin}
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD:-password}
     ports:
-      - '5672:5672'   # AMQP протокол
+      - '5672:5672'
       - '15672:15672' # Веб-интерфейс управления
     healthcheck:
       test: ["CMD", "rabbitmqctl", "status"]

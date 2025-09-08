@@ -10,3 +10,6 @@
 [submodule "services/nginx"]
 	path = services/nginx
 	url = https://github.com/Unietickets/unie-nginx
+[submodule "services/unie-admin"]
+	path = services/unie-admin
+	url = https://github.com/Unietickets/unie-admin.git

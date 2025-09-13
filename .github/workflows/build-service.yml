@@ -59,6 +59,30 @@ jobs:
             # Для других сервисов, если есть специфические target'ы
             echo "BUILD_TARGET=" >> $GITHUB_ENV
           fi
+          
+      - name: Load environment variables
+        id: load-env
+        run: |
+          if [ "${{ github.event.inputs.environment }}" == "development" ]; then
+            ENV_FILE="./docker/.env.development"
+          else
+            ENV_FILE="./docker/.env.production"
+          fi
+          
+          echo "Using environment file: $ENV_FILE"
+          
+          if [ -f "$ENV_FILE" ]; then
+            # Создаем файл с переменными окружения для Docker build
+            echo "ENV_FILE_CONTENT<<EOF" >> $GITHUB_ENV
+            cat "$ENV_FILE" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+            
+            # Преобразуем переменные окружения в формат для build-args
+            echo "BUILD_ARGS=$(grep -v '^#' "$ENV_FILE" | sed '/^$/d' | sed 's/^/--build-arg /' | tr '\n' ' ' | sed 's/=/=\\"/' | sed 's/$/ /g' | sed 's/ $//' | sed 's/ /\\"/g')" >> $GITHUB_ENV
+          else
+            echo "::warning::Environment file $ENV_FILE not found"
+            echo "BUILD_ARGS=" >> $GITHUB_ENV
+          fi
 
       - name: Build Docker image
         uses: docker/build-push-action@v4
@@ -70,6 +94,7 @@ jobs:
             ${{ secrets.DOCKER_HUB_USERNAME }}/unie-${{ github.event.inputs.service }}:${{ github.sha }}
           build-args: |
             NODE_ENV=${{ github.event.inputs.environment }}
+            ${{ env.ENV_FILE_CONTENT }}
           target: ${{ env.BUILD_TARGET }}
           cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/unie-${{ github.event.inputs.service }}:buildcache
           cache-to: ${{ github.event.inputs.push_image == 'true' && format('type=registry,ref={0}/unie-{1}:buildcache,mode=max', secrets.DOCKER_HUB_USERNAME, github.event.inputs.service) || '' }}

@@ -63,6 +63,12 @@ jobs:
       - name: Load environment variables
         id: load-env
         run: |
+          echo "Current directory:"
+          pwd
+          echo "Root directory contents:"
+          ls -la
+          echo "Docker directory contents:"
+          ls -la docker/ || echo "Docker directory not found"
           if [ "${{ github.event.inputs.environment }}" == "development" ]; then
             ENV_FILE="./docker/.env.development"
           else

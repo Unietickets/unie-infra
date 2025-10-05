@@ -118,6 +118,8 @@ jobs:
             NODE_ENV=${{ github.event.inputs.environment }}
             DATABASE_URL=${{ secrets.DATABASE_URL }}
             SHADOW_DATABASE_URL=${{ secrets.SHADOW_DATABASE_URL }}
+            STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}
+            NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
             ${{ env.BUILD_ARGS }}
           target: ${{ env.BUILD_TARGET }}
           cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/unie-${{ github.event.inputs.service }}:buildcache

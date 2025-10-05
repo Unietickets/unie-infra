@@ -60,35 +60,22 @@ jobs:
             echo "BUILD_TARGET=" >> $GITHUB_ENV
           fi
           
-      - name: Load environment variables
-        id: load-env
+      - name: Set environment variables from secrets
+        id: set-env
         run: |
-          echo "Current directory:"
-          pwd
-          echo "Root directory contents:"
-          ls -la
-          echo "Docker directory contents:"
-          ls -la docker/ || echo "Docker directory not found"
-          if [ "${{ github.event.inputs.environment }}" == "development" ]; then
-            ENV_FILE="./docker/.env.development"
-          else
-            ENV_FILE="./docker/.env.production"
-          fi
+          # Экспортируем переменные окружения из GitHub Secrets для использования в контейнере
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
+          echo "SHADOW_DATABASE_URL=${{ secrets.SHADOW_DATABASE_URL }}" >> $GITHUB_ENV
+          echo "NODE_ENV=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${{ github.event.inputs.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}" >> $GITHUB_ENV
+          echo "STRIPE_SECRET_KEY=${{ github.event.inputs.STRIPE_SECRET_KEY }}" >> $GITHUB_ENV
           
-          echo "Using environment file: $ENV_FILE"
+          # Создаем build args для Docker билда
+          echo "BUILD_ARGS=DATABASE_URL=${{ secrets.DATABASE_URL }} SHADOW_DATABASE_URL=${{ secrets.SHADOW_DATABASE_URL }} NODE_ENV=${{ github.event.inputs.NODE_ENV }} NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${{ github.event.inputs.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }} STRIPE_SECRET_KEY=${{ github.event.inputs.STRIPE_SECRET_KEY }}" >> $GITHUB_ENV
           
-          if [ -f "$ENV_FILE" ]; then
-            # Создаем файл с переменными окружения для Docker build
-            echo "ENV_FILE_CONTENT<<EOF" >> $GITHUB_ENV
-            cat "$ENV_FILE" >> $GITHUB_ENV
-            echo "EOF" >> $GITHUB_ENV
-            
-            # Преобразуем переменные окружения в формат для build-args
-            echo "BUILD_ARGS=$(grep -v '^#' "$ENV_FILE" | sed '/^$/d' | sed 's/^/--build-arg /' | tr '\n' ' ' | sed 's/=/=\\"/' | sed 's/$/ /g' | sed 's/ $//' | sed 's/ /\\"/g')" >> $GITHUB_ENV
-          else
-            echo "::warning::Environment file $ENV_FILE not found"
-            echo "BUILD_ARGS=" >> $GITHUB_ENV
-          fi
+          echo "Environment variables configured successfully"
+          echo "Available env vars: DATABASE_URL, SHADOW_DATABASE_URL, NODE_ENV"
+          echo "Build args set for Docker build"
 
       - name: Build Docker image
         uses: docker/build-push-action@v4
@@ -100,7 +87,8 @@ jobs:
             ${{ secrets.DOCKER_HUB_USERNAME }}/unie-${{ github.event.inputs.service }}:${{ github.sha }}
           build-args: |
             NODE_ENV=${{ github.event.inputs.environment }}
-            ${{ env.ENV_FILE_CONTENT }}
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            SHADOW_DATABASE_URL=${{ secrets.SHADOW_DATABASE_URL }}
           target: ${{ env.BUILD_TARGET }}
           cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/unie-${{ github.event.inputs.service }}:buildcache
           cache-to: ${{ github.event.inputs.push_image == 'true' && format('type=registry,ref={0}/unie-{1}:buildcache,mode=max', secrets.DOCKER_HUB_USERNAME, github.event.inputs.service) || '' }}

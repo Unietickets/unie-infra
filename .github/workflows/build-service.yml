@@ -46,65 +46,19 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-      - name: Verify required secrets
+      - name: Set build target
+        id: set-target
         run: |
-          echo "🔍 Checking required GitHub secrets..."
-          
-          if [ -z "${{ secrets.DATABASE_URL }}" ]; then
-            echo "::error::DATABASE_URL secret is required but not set"
-            echo "::error::Please add DATABASE_URL to repository secrets"
-            exit 1
+          if [ "${{ github.event.inputs.service }}" == "balance-service" ]; then
+            if [ "${{ github.event.inputs.environment }}" == "development" ]; then
+              echo "BUILD_TARGET=development" >> $GITHUB_ENV
+            else
+              echo "BUILD_TARGET=production" >> $GITHUB_ENV
+            fi
+          else
+            # Для других сервисов, если есть специфические target'ы
+            echo "BUILD_TARGET=" >> $GITHUB_ENV
           fi
-          
-          if [ -z "${{ secrets.SHADOW_DATABASE_URL }}" ]; then
-            echo "::warning::SHADOW_DATABASE_URL secret is not set - Prisma migrations may fail"
-            echo "::warning::Please add SHADOW_DATABASE_URL to repository secrets for Prisma migrations"
-          fi
-          
-          echo "✅ Required secrets verified"
-          echo "📝 Optional Stripe secrets:"
-          echo "   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: $(test -n "${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}" && echo '✅ Set' || echo '❌ Not set')"
-          echo "   STRIPE_SECRET_KEY: $(test -n "${{ secrets.STRIPE_SECRET_KEY }}" && echo '✅ Set' || echo '❌ Not set')"
-          
-          if [ -z "${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}" ] || [ -z "${{ secrets.STRIPE_SECRET_KEY }}" ]; then
-            echo "⚠️  Stripe secrets are not set - payment features will not work"
-            echo "   Add these secrets if you need Stripe payment functionality"
-          fi
-          
-      - name: Set environment variables from secrets
-        id: set-env
-        run: |
-          # Экспортируем переменные окружения из GitHub Secrets для использования в контейнере
-          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
-          echo "SHADOW_DATABASE_URL=${{ secrets.SHADOW_DATABASE_URL }}" >> $GITHUB_ENV
-          echo "NODE_ENV=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
-          echo "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}" >> $GITHUB_ENV
-          echo "STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}" >> $GITHUB_ENV
-          
-          # Создаем build args для Docker билда
-          BUILD_ARGS="DATABASE_URL=${{ secrets.DATABASE_URL }} SHADOW_DATABASE_URL=${{ secrets.SHADOW_DATABASE_URL }} NODE_ENV=${{ github.event.inputs.environment }}"
-          
-          # Добавляем Stripe переменные если они доступны
-          if [ -n "${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}" ]; then
-            BUILD_ARGS="$BUILD_ARGS NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}"
-          fi
-          
-          if [ -n "${{ secrets.STRIPE_SECRET_KEY }}" ]; then
-            BUILD_ARGS="$BUILD_ARGS STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}"
-          fi
-          
-          echo "BUILD_ARGS=$BUILD_ARGS" >> $GITHUB_ENV
-          
-          echo "Environment variables configured successfully"
-          echo "Available env vars: DATABASE_URL, SHADOW_DATABASE_URL, NODE_ENV"
-          echo "Stripe vars: $(test -n "${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}" && test -n "${{ secrets.STRIPE_SECRET_KEY }}" && echo "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY" || echo "not available")"
-          echo "Build args set for Docker build"
-          
-          # Проверяем, что переменные установлены
-          echo "Checking environment variables:"
-          echo "DATABASE_URL is set: $(test -n "$DATABASE_URL" && echo "YES" || echo "NO")"
-          echo "STRIPE_SECRET_KEY is set: $(test -n "$STRIPE_SECRET_KEY" && echo "YES" || echo "NO")"
-          echo "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is set: $(test -n "$NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY" && echo "YES" || echo "NO")"
 
       - name: Build Docker image
         uses: docker/build-push-action@v4
@@ -120,16 +74,13 @@ jobs:
             SHADOW_DATABASE_URL=${{ secrets.SHADOW_DATABASE_URL }}
             STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}
             NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
-            ${{ env.BUILD_ARGS }}
           target: ${{ env.BUILD_TARGET }}
           cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/unie-${{ github.event.inputs.service }}:buildcache
           cache-to: ${{ github.event.inputs.push_image == 'true' && format('type=registry,ref={0}/unie-{1}:buildcache,mode=max', secrets.DOCKER_HUB_USERNAME, github.event.inputs.service) || '' }}
 
       - name: Show build result
         run: |
-          echo "Сервис ${{ github.event.inputs.service }} успешно собран для окружения ${{ github.event.inputs.environment }}"
+          echo "✅ Сервис ${{ github.event.inputs.service }} успешно собран для окружения ${{ github.event.inputs.environment }}"
           if [ "${{ github.event.inputs.push_image }}" == "true" ]; then
-            echo "Образ отправлен в Docker Hub: ${{ secrets.DOCKER_HUB_USERNAME }}/unie-${{ github.event.inputs.service }}:latest"
-          else
-            echo "Образ не был отправлен в Docker Hub"
+            echo "🚀 Образ отправлен в Docker Hub: ${{ secrets.DOCKER_HUB_USERNAME }}/unie-${{ github.event.inputs.service }}:latest"
           fi

@@ -63,6 +63,22 @@ jobs:
       - name: Set environment variables from secrets
         id: set-env
         run: |
+          # Проверяем наличие обязательных секретов
+          if [ -z "${{ secrets.DATABASE_URL }}" ]; then
+            echo "::error::DATABASE_URL secret is not set"
+            exit 1
+          fi
+          
+          if [ -z "${{ secrets.STRIPE_SECRET_KEY }}" ]; then
+            echo "::error::STRIPE_SECRET_KEY secret is not set"
+            exit 1
+          fi
+          
+          if [ -z "${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}" ]; then
+            echo "::error::NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY secret is not set"
+            exit 1
+          fi
+          
           # Экспортируем переменные окружения из GitHub Secrets для использования в контейнере
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
           echo "SHADOW_DATABASE_URL=${{ secrets.SHADOW_DATABASE_URL }}" >> $GITHUB_ENV
@@ -76,6 +92,12 @@ jobs:
           echo "Environment variables configured successfully"
           echo "Available env vars: DATABASE_URL, SHADOW_DATABASE_URL, NODE_ENV, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY"
           echo "Build args set for Docker build"
+          
+          # Проверяем, что переменные установлены
+          echo "Checking environment variables:"
+          echo "DATABASE_URL is set: $(test -n "$DATABASE_URL" && echo "YES" || echo "NO")"
+          echo "STRIPE_SECRET_KEY is set: $(test -n "$STRIPE_SECRET_KEY" && echo "YES" || echo "NO")"
+          echo "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is set: $(test -n "$NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY" && echo "YES" || echo "NO")"
 
       - name: Build Docker image
         uses: docker/build-push-action@v4

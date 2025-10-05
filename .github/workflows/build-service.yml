@@ -67,14 +67,14 @@ jobs:
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
           echo "SHADOW_DATABASE_URL=${{ secrets.SHADOW_DATABASE_URL }}" >> $GITHUB_ENV
           echo "NODE_ENV=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
-          echo "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${{ github.event.inputs.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}" >> $GITHUB_ENV
-          echo "STRIPE_SECRET_KEY=${{ github.event.inputs.STRIPE_SECRET_KEY }}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}" >> $GITHUB_ENV
+          echo "STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}" >> $GITHUB_ENV
           
           # Создаем build args для Docker билда
-          echo "BUILD_ARGS=DATABASE_URL=${{ secrets.DATABASE_URL }} SHADOW_DATABASE_URL=${{ secrets.SHADOW_DATABASE_URL }} NODE_ENV=${{ github.event.inputs.NODE_ENV }} NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${{ github.event.inputs.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }} STRIPE_SECRET_KEY=${{ github.event.inputs.STRIPE_SECRET_KEY }}" >> $GITHUB_ENV
+          echo "BUILD_ARGS=DATABASE_URL=${{ secrets.DATABASE_URL }} SHADOW_DATABASE_URL=${{ secrets.SHADOW_DATABASE_URL }} NODE_ENV=${{ github.event.inputs.environment }} NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }} STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}" >> $GITHUB_ENV
           
           echo "Environment variables configured successfully"
-          echo "Available env vars: DATABASE_URL, SHADOW_DATABASE_URL, NODE_ENV"
+          echo "Available env vars: DATABASE_URL, SHADOW_DATABASE_URL, NODE_ENV, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY"
           echo "Build args set for Docker build"
 
       - name: Build Docker image
@@ -89,6 +89,8 @@ jobs:
             NODE_ENV=${{ github.event.inputs.environment }}
             DATABASE_URL=${{ secrets.DATABASE_URL }}
             SHADOW_DATABASE_URL=${{ secrets.SHADOW_DATABASE_URL }}
+            NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+            STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}
           target: ${{ env.BUILD_TARGET }}
           cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/unie-${{ github.event.inputs.service }}:buildcache
           cache-to: ${{ github.event.inputs.push_image == 'true' && format('type=registry,ref={0}/unie-{1}:buildcache,mode=max', secrets.DOCKER_HUB_USERNAME, github.event.inputs.service) || '' }}

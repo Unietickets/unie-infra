@@ -10,6 +10,9 @@ services:
       context: ../services/unie
       dockerfile: Dockerfile
       target: runner
+      args: 
+        - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+        - NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
     restart: always
     environment:
       - NODE_ENV=production

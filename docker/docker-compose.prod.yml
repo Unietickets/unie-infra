@@ -85,7 +85,7 @@ services:
       - 8.8.4.4
     depends_on:
       unie-client:
-        condition: service_healthy
+        condition: service_started
       admin:
         condition: service_started
     restart: always

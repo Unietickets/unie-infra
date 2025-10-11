@@ -17,6 +17,8 @@ services:
     restart: always
     environment:
       - NODE_ENV=production
+      - DATABASE_HOST=${DATABASE_HOST}
+      - DATABASE_PORT=${DATABASE_PORT}
       - DATABASE_URL=${DATABASE_URL}
       - RABBITMQ_URL=amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASSWORD:-password}@rabbitmq:5672
       - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}

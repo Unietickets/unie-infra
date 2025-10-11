@@ -14,11 +14,7 @@ services:
     container_name: admin
     restart: always
     environment:
-      - DATABASE_HOST=${DATABASE_HOST}
-      - DATABASE_PORT=${DATABASE_PORT}
-      - DATABASE_USER=${DATABASE_USER}
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
-      - DATABASE_NAME=${DATABASE_NAME}
+      - DATABASE_URL=${DATABASE_URL}
     expose:
       - "5000"
     networks:

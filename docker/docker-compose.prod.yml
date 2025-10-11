@@ -34,7 +34,7 @@ services:
       - app_network
     ports: []  # Закрываем внешние порты в продакшене
     expose:
-      - "5000"
+      - "3000"
 
   balance-service:
     build:

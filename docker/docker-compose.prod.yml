@@ -13,6 +13,7 @@ services:
       args: 
         - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
         - NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
+        - DATABASE_URL=${DATABASE_URL}
     restart: always
     environment:
       - NODE_ENV=production
